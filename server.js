@@ -3,7 +3,7 @@ const app = express();
 
 const PORT = process.env.PORT || 3001;
 
-
+const inputCheck = require('./utils/inputCheck');
 
 
 // Express middleware
@@ -36,6 +36,29 @@ app.get('/api/candidates', (req,res) => {
     })
 })
 
+// Create a candidate
+app.post('/api/candidates', ({ body }, res) => {
+    const errors = inputCheck(body, 'first_name', 'last_name', 'industry_connected');
+    if (errors) {
+      res.status(400).json({ error: errors });
+      return;
+    }
+
+const sql = `INSERT INTO candidates (first_name, last_name, industry_connected)
+  VALUES (?,?,?)`;
+const params = [body.first_name, body.last_name, body.industry_connected];
+
+db.query(sql, params, (err, result) => {
+  if (err) {
+    res.status(400).json({ error: err.message });
+    return;
+  }
+  res.json({
+    message: 'success',
+    data: body
+  });
+});
+  });
 
 app.get('/api/candidates/:id', (req,res) => {
     const params = req.params.id;
@@ -49,6 +72,29 @@ app.get('/api/candidates/:id', (req,res) => {
         else{
             res.status(404).json({"message" : "That candidate does not exist"})
         }
+    })
+})
+
+
+
+app.delete('/api/candidates/:id', (req,res) => {
+    const params = req.params.id;
+    const sql = `DELETE FROM candidates WHERE id = ?`;
+
+    db.query(sql, params, (err,result) => {
+        if (err) {
+            res.statusMessage(400).json({ error: res.message });
+          } else if (!result.affectedRows) {
+            res.json({
+              message: 'Candidate not found'
+            });
+          } else {
+            res.json({
+              message: 'deleted',
+              changes: result.affectedRows,
+              id: req.params.id
+            });
+          }
     })
 })
 
