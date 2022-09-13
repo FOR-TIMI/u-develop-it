@@ -36,6 +36,22 @@ app.get('/api/candidates', (req,res) => {
     })
 })
 
+
+app.get('/api/candidates/:id', (req,res) => {
+    const params = req.params.id;
+    const sql = `SELECT * FROM candidates WHERE id = ?`;
+
+    db.query(sql, params, (err,row) => {
+        if(err) return res.status(500).json({"Error message": err.message});
+        if(row.length){
+            res.json({"message" : "Success", "data": row});
+        }
+        else{
+            res.status(404).json({"message" : "That candidate does not exist"})
+        }
+    })
+})
+
 // db.query(`SELECT * FROM candidates`, (err,rows) => {
 //     if (err) console.error(err);
 //     console.log(row);
